@@ -3,6 +3,10 @@ import cv2
 import os
 import config
     
+""" 
+Add a description of data dormat
+"""
+
 
 def loadData(file):
     import pickle
@@ -15,7 +19,7 @@ class Data():
         self.labelNames = np.array([loadData(config.labelNamesFile)])
         self.dataset = np.array([loadData(os.path.join(config.dataDir, x)) for x in config.dataFiles])
         self.X_train, self.y_train, self.X_test, self.y_test = self.__getLearningData()
-        
+
     def rowToMatrix(self, batchIndex, rowIndex):
         assert batchIndex < 5 and batchIndex >= 0, 'We have only 5 batches'
         assert rowIndex < 10000 and rowIndex >= 0, 'We have 10000 rows (images) per batch'
@@ -27,13 +31,14 @@ class Data():
         return self.labelNames[0][b'label_names'][self.dataset[batchIndex][b'labels'][rowIndex]].decode("utf-8")
 
     def toGray(self, img):
-        return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img_uint8 = img.astype(np.uint8)
+        return cv2.cvtColor(img_uint8, cv2.COLOR_RGB2GRAY)
     
     def __getLearningData(self):
-        y_train = np.array([x.reshape(3, 32, 32).T for t in self.dataset[:len(self.dataset) - 1] for x in t[b'data']])
-        y_test = np.array([x.reshape(3, 32, 32).T for x in self.dataset[len(self.dataset)-1][b'data']])
-        X_train = np.array([self.toGray(y) for y in y_train])
-        X_test = np.array([self.toGray(y) for y in y_test])
+        y_train = np.array([x.reshape(3, 32, 32).T for t in self.dataset[:len(self.dataset) - 1] for x in t[b'data']])/255
+        y_test = np.array([x.reshape(3, 32, 32).T for x in self.dataset[len(self.dataset)-1][b'data']])/255
+        X_train = np.array([self.toGray(y).reshape(1, 32, 32) for y in y_train])/255
+        X_test = np.array([self.toGray(y).reshape(1, 32, 32) for y in y_test])/255
         return X_train, y_train, X_test, y_test
     
 
@@ -42,6 +47,7 @@ if __name__ == '__main__':
     data = Data()
     
     print(data.dataset[0].keys(), data.dataset[1].keys())
+    print(data.X_train.shape, data.X_test.shape, data.y_train.shape, data.y_test.shape)
     #print(data.dataset[len(data.dataset)-1].keys())
     #print(data.labelNames)
     """
