@@ -1,6 +1,8 @@
+import config
+import os
+
 import model as model
 import Data as Data
-import config
 
 import tensorflow as tf
 
@@ -80,7 +82,7 @@ if __name__ == '__main__':
         )
         
     """
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
     loss = tf.keras.losses.MeanSquaredError()
     metrics = ['accuracy']
 
@@ -88,11 +90,11 @@ if __name__ == '__main__':
 
     history = colorization.fit(data.X_train, data.y_train, batch_size=config.batchSize
                         , epochs=config.numEpochs, validation_split=0.2
-                        , callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)])
+                        , callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=2)])
 
     test_scores = colorization.evaluate(data.X_test, data.y_test, verbose=2)
     print("Test loss:", test_scores[0])
     print("Test accuracy:", test_scores[1])
     
-    colorization.save("colorization.h5")
+    colorization.save_weights(os.path.join(config.saveModelDir, 'colorizationWeights'), save_format='tf')
 
