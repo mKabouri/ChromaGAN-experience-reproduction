@@ -1,73 +1,57 @@
-import config
-import Data as Data
 import numpy as np
-import os
+import config
 
-import keras
-from keras.optimizers import SGD
-from keras.layers import Input, Conv2D, Conv2DTranspose
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.callbacks import ModelCheckpoint
-from keras.models import Model
-from keras.optimizers import Adam
+import tensorflow as tf
+from tensorflow.keras.layers import MaxPooling2D, Conv2D, UpSampling2D, BatchNormalization, Conv2DTranspose
 
-class model():
-    def __init__(self):
-        self.data = Data.Data()
-        
-        self.inImg = (config.ImageSize, config.ImageSize, 1)
-        
-        optimizer = Adam(1e-4, 0.5)
+class downSamplingLayer(tf.keras.layers.Layer):
+    def __init__(self, numFilters):
+        super().__init__()
+        self.conv1 = Conv2D(filters=numFilters, kernel_size=(3, 3), activation='relu', padding='same')
+        self.batchNorm1 = BatchNormalization()
+        self.conv2 = Conv2D(filters=numFilters, kernel_size=(3, 3), activation='relu', padding='same')
+        self.batchNorm2 = BatchNormalization()
+        self.maxPool = MaxPooling2D(pool_size=(2, 2))
 
-        self.autoencoder = model()
-        self.autoencoder.compile(optimizer=optimizer, loss=['mse', 'kld'], metrics=['accuracy'])
-        
-        self.trained = 0
-        
-    
-    def model(self, pretrainedWeigths=None):
-        inputImg = Input(shape=self.inImg)
-        
-        downsamplingLayers = Conv2D(filters=32, kernel_size=(3, 3), activation='ReLu', padding='same')(input)
-        downsamplingLayers = Conv2D(filters=32, kernel_size=(3, 3), activation='ReLu', padding='same')(downsamplingLayers)
-        downsamplingLayers = MaxPooling2D(pool_size=(2, 2), strides=1)(downsamplingLayers)
-        downsamplingLayers = Conv2D(filters=32, kernel_size=(3, 3), activation='ReLu', padding='same')(downsamplingLayers)
-        downsamplingLayers = Conv2D(filters=64, kernel_size=(3, 3), activation='ReLu', padding='same')(downsamplingLayers)
-        downsamplingLayers = MaxPooling2D(pool_size=(2, 2), strides=1)(downsamplingLayers)
-        downsamplingLayers = Conv2D(filters=64, kernel_size=(3, 3), activation='ReLu', padding='same')(downsamplingLayers)
-        downsamplingLayers = Conv2D(filters=128, kernel_size=(3, 3), activation='ReLu', padding='same')(downsamplingLayers)
+    def call(self, inputs):
+        x = self.conv1(inputs)
+        x = self.batchNorm1(x)
+        x = self.conv2(x)
+        x = self.batchNorm2(x)
+        return self.maxPool(x)
 
-        upsamplingLayers = Conv2DTranspose(filters=128, kernel_size=(3, 3), activation='ReLu')(downsamplingLayers)
-        upsamplingLayers = Conv2D(filters=128, kernel_size=(3, 3), activation='ReLu', padding='same')(upsamplingLayers)
-        upsamplingLayers = Conv2D(filters=64, kernel_size=(3, 3), activation='ReLu', padding='same')(upsamplingLayers)
-        upsamplingLayers = Conv2DTranspose(filters=64, kernel_size=(3, 3), activation='ReLu')(upsamplingLayers)
-        upsamplingLayers = Conv2D(filters=64, kernel_size=(3, 3), activation='ReLu', padding='same')(upsamplingLayers)
-        upsamplingLayers = Conv2D(filters=32, kernel_size=(3, 3), activation='ReLu', padding='same')(upsamplingLayers)
-
-        model = Model(inputs=[inputImg], outputs=[downsamplingLayers])
-            
-        if pretrainedWeigths:
-    	    model.load_weights(pretrainedWeigths)
-            
-        return model
-    
-    def train(self):
-        model_checkpoint = ModelCheckpoint('checkPointsTraining.hdf5', monitor='val_accuracy'
-                                           , mode='max', save_best_only=True)
-        self.autoencoder.fit([self.data.X_train], [self.data.y_train], batch_size=config.batchSize
-                             , epochs=config.numEpochs, validation_split=0.2, callbacks=[model_checkpoint])
-        self.trained = 1
+class upSamplingLayer(tf.keras.layers.Layer):
+    def __init__(self, numFilters):
+        super().__init__()
+        self.conv1 = Conv2D(filters=numFilters, kernel_size=(3, 3), activation='relu', padding='same')
+        self.batchNorm1 = BatchNormalization()
+        self.conv2 = Conv2D(filters=numFilters, kernel_size=(3, 3), activation='relu', padding='same')
+        self.batchNorm2 = BatchNormalization()
+        self.upSampling = UpSampling2D(size=(2, 2), interpolation='nearest')
         
-    def testModel(self):
-        pass        
-    
+    def call(self, inputs):
+        x = self.upSampling(inputs)
+        x = self.conv1(x)
+        x = self.batchNorm1(x)
+        x = self.conv2(x)
+        return self.batchNorm2(x)
 
-    
-if __name__ == '__main__':
-    colorization = model()
-    
-    if not colorization.trained:
-        print("===============Training===============\n")
-        colorization.train()
-            
-    
+class colorizationNet(tf.keras.Model):
+    def __init__(self, numChannels):
+        super(colorizationNet, self).__init__()
+        self.downSampl32 = downSamplingLayer(32)
+        self.downSampl64 = downSamplingLayer(64)
+        self.downSampl128 = downSamplingLayer(128)
+        self.upSampl128 = upSamplingLayer(128)
+        self.upSampl64 = upSamplingLayer(64)
+        self.upSampl32 = upSamplingLayer(32)
+        self.conv3 = Conv2D(filters=numChannels, kernel_size=(3, 3), activation='relu', padding='same')
+
+    def call(self, inputs):
+        x = self.downSampl32(inputs)
+        x = self.downSampl64(x)
+        x = self.downSampl128(x)
+        x = self.upSampl128(x)
+        x = self.upSampl64(x)
+        x = self.upSampl32(x)
+        return self.conv3(x)

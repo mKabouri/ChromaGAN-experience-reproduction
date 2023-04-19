@@ -31,15 +31,14 @@ class Data():
         return self.labelNames[0][b'label_names'][self.dataset[batchIndex][b'labels'][rowIndex]].decode("utf-8")
 
     def toGray(self, img):
-        img_uint8 = img.astype(np.uint8)
-        return cv2.cvtColor(img_uint8, cv2.COLOR_RGB2GRAY)
+        return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     
     def __getLearningData(self):
-        y_train = np.array([x.reshape(3, 32, 32).T for t in self.dataset[:len(self.dataset) - 1] for x in t[b'data']])/255
-        y_test = np.array([x.reshape(3, 32, 32).T for x in self.dataset[len(self.dataset)-1][b'data']])/255
-        X_train = np.array([self.toGray(y).reshape(1, 32, 32) for y in y_train])/255
-        X_test = np.array([self.toGray(y).reshape(1, 32, 32) for y in y_test])/255
-        return X_train, y_train, X_test, y_test
+        y_train = np.array([x.reshape(3, 32, 32).T for t in self.dataset[:len(self.dataset) - 1] for x in t[b'data']])
+        y_test = np.array([x.reshape(3, 32, 32).T for x in self.dataset[len(self.dataset)-1][b'data']])
+        X_train = np.array([self.toGray(y).reshape(32, 32, 1) for y in y_train])
+        X_test = np.array([self.toGray(y).reshape(32, 32, 1) for y in y_test])
+        return X_train/255, y_train/255, X_test/255, y_test/255
     
 
 if __name__ == '__main__':
@@ -48,9 +47,10 @@ if __name__ == '__main__':
     
     print(data.dataset[0].keys(), data.dataset[1].keys())
     print(data.X_train.shape, data.X_test.shape, data.y_train.shape, data.y_test.shape)
+    print(type(data.X_train), type(data.X_test), type(data.y_train), type(data.y_test))
     #print(data.dataset[len(data.dataset)-1].keys())
     #print(data.labelNames)
-    """
+
     # show an image from dataset   
     img = data.rowToMatrix(0, 2)
 
@@ -66,19 +66,22 @@ if __name__ == '__main__':
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
-    print(img.shape)
-    print(gray_img.shape)
+    print("color image shape = ", img.shape)
+    print("color image shape = ", gray_img.shape)
     
     print("Ok")
         
     # Show from X_train and y_train
-    cv2.imshow('image X_train', data.X_train[0])
+    print(data.X_train[2].shape)
+    print(data.y_train[2].shape)
+    
+    cv2.imshow('image X_train', data.X_train[2])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
-    cv2.imshow('image y_train', data.y_train[0])
+    cv2.imshow('image y_train', data.y_train[2])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
     print("Ok")  
-    """
+    
