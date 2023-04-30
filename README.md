@@ -9,6 +9,22 @@ ChromaGAN: Adversarial Picture Colorization with Semantic Class Distribution. Pa
 
 U-Net: Convolutional Networks for Biomedical Image Segmentation. Olaf Ronneberger, Philipp Fischer, and Thomas Brox. [link](https://arxiv.org/pdf/1505.04597)
 
-## To do:
+## Training:
 
-- Data augmentation
+- Execute Data.py first to generate `.npy` file for training:
+```
+python3 src/Data.py
+```
+
+- Execute train.py:
+```
+python3 src/train.py
+```
+
+- After that a file that saves model weights is saved at `saveModel` directory.
+
+## Experimenting:
+- To have colored images from test set run from root:
+```
+python3 src/coloringImages.py
+```
