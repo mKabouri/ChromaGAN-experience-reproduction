@@ -14,6 +14,7 @@ def deprocess(imgs):
 
 def coloringSamples(colorization, nbSamples):
     X_test = np.load("X_test.npy")
+    y_test = np.load("y_test.npy")
     n = np.random.randint(0, len(X_test))
     batchX = []
     if n + nbSamples > len(X_test):
@@ -25,7 +26,7 @@ def coloringSamples(colorization, nbSamples):
     print(colorImages.shape)
     print(batchX.shape)
     for i in range(nbSamples):
-        res = np.concatenate((colorImages[i].reshape(32, 32, 3), batchX[i]))
+        res = np.concatenate((np.concatenate((colorImages[i].reshape(32, 32, 3), batchX[i])), y_test[i+n]))
         cv2.imwrite(config.saveRGBSamples + "Image_" + str(n + i) + ".png", deprocess(res))
     print("Colored and saved at: ", config.saveRGBSamples)
     return
