@@ -13,6 +13,6 @@ saveRGBSamples = os.path.join(rootDir, 'samples/rgbFormat/result/')
 
 
 batchSize = 10
-numEpochs = 10
+numEpochs = 5
 
 ImageSize = 32

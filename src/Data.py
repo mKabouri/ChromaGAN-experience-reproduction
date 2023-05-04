@@ -3,10 +3,6 @@ import cv2
 import os
 import config
 
-""" 
-Add a description of data dormat
-"""
-
 
 def loadData(file):
     import pickle
@@ -47,14 +43,15 @@ with open(file_Y, 'wb') as f:
     np.save(f, Y)
 """
 if __name__ == '__main__':
-    
+    """
     data = Data()
 
     print(data.dataset[0].keys(), data.dataset[1].keys())
     print(data.X_train.shape, data.X_test.shape, data.y_train.shape, data.y_test.shape)
     print(type(data.X_train), type(data.X_test), type(data.y_train), type(data.y_test))
-   
-    
+    """
+    # Save data in npy format
+    """
     file_X_train = "X_train.npy"
     file_y_train = "y_train.npy"
     file_X_test = "X_test.npy"
@@ -68,9 +65,10 @@ if __name__ == '__main__':
         np.save(f, data.X_test)  
     with open(file_y_test, 'wb') as f:
         np.save(f, data.y_test)
-    
+        
     print(data.dataset[len(data.dataset)-1].keys())
     print(data.labelNames)
+    """
     """
     # show an image from dataset   
     img = data.rowToMatrix(0, 2)

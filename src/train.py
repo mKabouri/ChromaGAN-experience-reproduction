@@ -104,4 +104,4 @@ if __name__ == '__main__':
     print("Test mae: ", test_scores[1])
     print("Test mse: ", test_scores[2])
     
-    colorization.save_weights(os.path.join(config.saveModelDir, 'colorizationRGBWeights.h5'), save_format='h5')
+    colorization.save_weights(os.path.join(config.saveModelDir, 'colorizationRGBWeights5Epochs.h5'), save_format='h5')

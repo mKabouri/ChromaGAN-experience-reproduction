@@ -21,13 +21,13 @@ def coloringSamples(colorization, nbSamples):
         batchX = X_test[n - nbSamples: n]
     else:
         batchX = X_test[n : n + nbSamples]
-    colorization.load_weights(os.path.join(config.saveModelDir, 'colorizationRGBWeights.h5')) 
+    colorization.load_weights(os.path.join(config.saveModelDir, 'colorizationRGBWeights5Epochs.h5')) 
     colorImages = np.array([colorization.predict(x.reshape(1, 32, 32, 3)) for x in batchX])
     print(colorImages.shape)
     print(batchX.shape)
     for i in range(nbSamples):
         res = np.concatenate((np.concatenate((colorImages[i].reshape(32, 32, 3), batchX[i])), y_test[i+n]))
-        cv2.imwrite(config.saveRGBSamples + "Image_" + str(n + i) + ".png", deprocess(res))
+        cv2.imwrite(config.saveRGBSamples + "new_arch_image_" + str(n + i) + ".png", deprocess(res))
     print("Colored and saved at: ", config.saveRGBSamples)
     return
     
