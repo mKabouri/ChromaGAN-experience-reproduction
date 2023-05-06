@@ -6,6 +6,7 @@ The dataset is taken from [the CIFAR-10 dataset](https://www.cs.toronto.edu/~kri
 ## Training:
 
 - Execute Data.py first to generate `.npy` file for training:
+You have to edit `config.py` file and affect `RGB` or `Lab` to ImageFormat variable
 ```
 python3 src/Data.py
 ```
