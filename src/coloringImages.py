@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from skimage.color import rgb2gray, rgb2lab, lab2rgb
 
 
-def showImage(self, img):
-        plt.imshow(img)
-        plt.show()
+def showImage(img):
+    plt.imshow(img)
+    plt.show()
 
 def denormalize_lab(lab_norm):
     L_norm, a_norm, b_norm = lab_norm[:,:,0], lab_norm[:,:,1], lab_norm[:,:,2]
