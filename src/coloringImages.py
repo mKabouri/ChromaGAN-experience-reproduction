@@ -1,25 +1,27 @@
-import cv2
-import numpy as np
-
 import model as model
 import os
 import config
+
+import cv2
+import numpy as np
 import matplotlib.pyplot as plt
+from skimage.color import rgb2gray, rgb2lab, lab2rgb
 
-def deprocess(imgs):
-    imgs = imgs * 255
-    imgs[imgs > 255] = 255
-    imgs[imgs < 0] = 0
-    return imgs.astype(np.uint8)
 
-def concatenateGrayWithAB(gray, ab):
-    a = ab[:, :, 0].astype('float32')
-    b = ab[:, :, 1].astype('float32')
-    a = a.reshape(32, 32, 1)
-    b = b.reshape(32, 32, 1)
-    gray = gray.astype('float32')
-    concat = cv2.merge((gray, a, b)).astype('float32')
-    return cv2.cvtColor(concat, cv2.COLOR_Lab2RGB)
+def showImage(self, img):
+        plt.imshow(img)
+        plt.show()
+
+def denormalize_lab(lab_norm):
+    L_norm, a_norm, b_norm = lab_norm[:,:,0], lab_norm[:,:,1], lab_norm[:,:,2]
+    L = L_norm * 100.0
+    a = a_norm * 127.0
+    b = b_norm * 127.0
+    image_lab = np.stack([L, a, b], axis=2)
+    return image_lab
+
+def backToRGBPipeline(gray, ab):
+    return lab2rgb(denormalize_lab(np.concatenate((gray, ab), axis=2)))
 
 def coloringSamples(colorization, nbSamples, dirToSave, pathToX_test, pathToy_test, weightsFileName):
     X_test = np.load(pathToX_test)
@@ -34,10 +36,10 @@ def coloringSamples(colorization, nbSamples, dirToSave, pathToX_test, pathToy_te
     colorImages = np.array([colorization.predict(x.reshape(1, 32, 32, 1)) for x in batchX])
     for i in range(nbSamples):
         if config.ImagesFormat == 'Lab':
-            res = np.concatenate((np.concatenate((concatenateGrayWithAB(X_test[i], y_test[i+n]), np.stack((batchX[i].reshape(32, 32),)*3, axis=-1))), concatenateGrayWithAB(batchX[i], colorImages[i].reshape(32, 32, 2))))
+            res = np.concatenate((np.concatenate((backToRGBPipeline(X_test[i], y_test[i+n]), np.stack((batchX[i].reshape(32, 32),)*3, axis=-1))), backToRGBPipeline(batchX[i], colorImages[i])))
         else:
             res = np.concatenate((np.concatenate((y_test[i+n], np.stack((batchX[i].reshape(32, 32),)*3, axis=-1))), colorImages[i].reshape(32, 32, 3)))
-        cv2.imwrite(dirToSave + "new_arch_image_" + str(n + i) + ".png", deprocess(res))
+        cv2.imwrite(dirToSave + "new_arch_image_" + str(n + i) + ".png", res)
     print("Colored and saved at: ", dirToSave)
     return
     
