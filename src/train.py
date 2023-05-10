@@ -81,9 +81,12 @@ if __name__ == '__main__':
     EPOCHS = config.numEpochs
     train(train_ds, test_ds, EPOCHS)
     """
-    if not(os.path.exists("X_train.npy")) or not(os.path.exists("X_train_Lab.npy")):
+    if config.ImagesFormat == 'Lab' and not(os.path.exists("X_train_Lab.npy")):
         raise ValueError("You have to exexute Data.py first from root to have data files and chose an adequat images format in config.py")
-    
+    elif config.ImagesFormat == 'RGB' and not(os.path.exists("X_train.npy")):
+        raise ValueError("You have to exexute Data.py first from root to have data files and chose an adequat images format in config.py")
+        
+
     if config.ImagesFormat == 'RGB':
         numChannels = 3 # We want to predict RGB
     

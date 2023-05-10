@@ -11,12 +11,6 @@ def loadData(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
-def deprocess(imgs):
-    imgs = imgs * 255
-    imgs[imgs > 255] = 255
-    imgs[imgs < 0] = 0
-    return imgs.astype(np.uint8)
-
 def normalize_lab(lab):
     L, a, b = lab[:,:,0], lab[:,:,1], lab[:,:,2]
     L_norm = L / 100.0
@@ -25,16 +19,22 @@ def normalize_lab(lab):
     image_lab_norm = np.stack([L_norm, a_norm, b_norm], axis=2)
     return image_lab_norm
 
-def denormalize_lab(lab_norm):
-    L_norm, a_norm, b_norm = lab_norm[:,:,0], lab_norm[:,:,1], lab_norm[:,:,2]
-    L = L_norm * 100.0
-    a = a_norm * 127.0
-    b = b_norm * 127.0
-    image_lab = np.stack([L, a, b], axis=2)
-    return image_lab
+def denormalize(img):
+    if config.ImagesFormat == 'Lab':
+        L_norm, a_norm, b_norm = img[:,:,0], img[:,:,1], img[:,:,2]
+        L = L_norm * 100.0
+        a = a_norm * 127.0
+        b = b_norm * 127.0
+        image_lab = np.stack([L, a, b], axis=2)
+        return image_lab
+    else:     
+        img = img * 255
+        img[img > 255] = 255
+        img[img < 0] = 0
+        return img.astype(np.uint8)
 
 def backToRGBPipeline(gray, ab):
-    return lab2rgb(denormalize_lab(np.concatenate((gray, ab), axis=2)))
+    return lab2rgb(denormalize(np.concatenate((gray, ab), axis=2)))
 
 
 class Data():
@@ -62,16 +62,19 @@ class Data():
         trainImages = np.array([np.moveaxis(x.reshape(3, 32, 32), 0, -1) for t in self.dataset[:len(self.dataset) - 1] for x in t[b'data']])
         testImages = np.array([np.moveaxis(x.reshape(3, 32, 32), 0, -1) for x in self.dataset[len(self.dataset)-1][b'data']])
         
+        self.showImage(trainImages[0])
+
         if config.ImagesFormat == 'Lab':
             y_train = np.array([normalize_lab(rgb2lab(y))[:, :, 1:] for y in trainImages])
-            y_test = np.array([normalize_lab(rgb2lab(y))[:, :, 1:] for y in testImages])  
+            y_test = np.array([normalize_lab(rgb2lab(y))[:, :, 1:] for y in testImages])
+            X_train = np.array([self.toGray(y).reshape(32, 32, 1) for y in trainImages])
+            X_test = np.array([self.toGray(y).reshape(32, 32, 1) for y in testImages])
         else:
-            y_train = trainImages.copy()
-            y_test = testImages.copy()
+            y_train = trainImages.copy()/255
+            y_test = testImages.copy()/255
+            X_train = np.array([self.toGray(y).reshape(32, 32, 1) for y in trainImages])
+            X_test = np.array([self.toGray(y).reshape(32, 32, 1) for y in testImages])
 
-        X_train = np.array([self.toGray(y).reshape(32, 32, 1) for y in trainImages])
-        X_test = np.array([self.toGray(y).reshape(32, 32, 1) for y in testImages])
-        
         return X_train, y_train, X_test, y_test
         
     def save(self):
@@ -109,13 +112,21 @@ if __name__ == '__main__':
     
     print(data.X_train.shape, data.y_train.shape)
 
-    #data.save()
+    data.save()
     
-    L = data.X_train[0]
-    print(L)
-    ab = data.y_train[0]
-
-    data.showImage(backToRGBPipeline(L, ab))
+    if config.ImagesFormat == 'Lab':
+        L = data.X_train[0]
+        print(L)
+        ab = data.y_train[0]
+        data.showImage(backToRGBPipeline(L, ab))
+    else:
+        img = data.X_train[6]
+        img_test = data.y_train[6]
+        print(img)
+        data.showImage(denormalize(img))
+        print(denormalize(img_test))
+        data.showImage(denormalize(img_test))
+        print(denormalize(img_test))
 
     print("Ok")  
     
