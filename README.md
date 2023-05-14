@@ -7,7 +7,7 @@ The datasets are taken from [the CIFAR-10 dataset](https://www.cs.toronto.edu/~k
 
 - Execute Data.py first to generate `.npy` file for training:
 
-You have to edit `config.py` file and affect `RGB` or `Lab` to ImageFormat variable
+You have to edit `config.py` file and affect `RGB` or `Lab` to ImageFormat variable in case of `CIFAR-10` dataset
 ```
 python3 src/Data.py
 ```
