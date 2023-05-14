@@ -81,26 +81,33 @@ if __name__ == '__main__':
     EPOCHS = config.numEpochs
     train(train_ds, test_ds, EPOCHS)
     """
+    """
     if config.ImagesFormat == 'Lab' and not(os.path.exists("X_train_Lab.npy")):
         raise ValueError("You have to exexute Data.py first from root to have data files and chose an adequat images format in config.py")
     elif config.ImagesFormat == 'RGB' and not(os.path.exists("X_train.npy")):
         raise ValueError("You have to exexute Data.py first from root to have data files and chose an adequat images format in config.py")
-        
-
-    if config.ImagesFormat == 'RGB':
+    """
+    if config.dataset == 'Div2K':
         numChannels = 3 # We want to predict RGB
     
         # Load data
-        X_train = np.load("X_train.npy")
-        y_train = np.load("y_train.npy")
-    else: 
-        numChannels = 2 # We want to predict ab
-    
-        # Load data
-        X_train = np.load("X_train_Lab.npy")
-        y_train = np.load("y_train_Lab.npy")
+        X_train = np.load("X_train_Div2K.npy")
+        y_train = np.load("y_train_Div2K.npy")
+    else:
+        if config.ImagesFormat == 'RGB':
+            numChannels = 3 # We want to predict RGB
         
-    
+            # Load data
+            X_train = np.load("X_train.npy")
+            y_train = np.load("y_train.npy")
+        else: 
+            numChannels = 2 # We want to predict ab
+        
+            # Load data
+            X_train = np.load("X_train_Lab.npy")
+            y_train = np.load("y_train_Lab.npy")
+
+
     colorization = model.colorizationNet(numChannels)
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
@@ -108,38 +115,55 @@ if __name__ == '__main__':
     metrics = ['mae', 'mse']
 
     colorization.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    
-    colorization.build((10, 32, 32, 1))
+
+    if config.dataset == 'Div2K':
+        colorization.build((config.batchSize, config.ImageSize, config.ImageSize, 1))
+    else:
+        colorization.build((config.batchSize, config.ImageSize, config.ImageSize, 1))
+
     print(colorization.summary())
-    
+
     history = colorization.fit(X_train, y_train, batch_size=config.batchSize
-                        , epochs=config.numEpochs, validation_split=0.2
-                        , callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_mae', patience=2)])
-    
+                        , epochs=config.numEpochs, validation_split=0.2)
+                        #, callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_mae', patience=2)])
+
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
+
     if config.ImagesFormat == 'Lab':
         plt.title('Lab prediction loss')
     else:
         plt.title('RGB prediction loss')
+
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='upper left')
+    if config.dataset == 'Div2K':
+        plt.savefig('Div2K_loss.png') 
+    else:
+        plt.savefig('CIFAR10_loss' + config.ImagesFormat + '.png')
     plt.show()
 
-    if config.ImagesFormat == 'RGB':
-        X_test = np.load("X_test.npy")
-        y_test = np.load("y_test.npy")
+    if config.dataset == 'Div2K':
+        X_test = np.load("X_test_Div2K.npy")
+        y_test = np.load("y_test_Div2K.npy")
     else:
-        X_test = np.load("X_test_Lab.npy")
-        y_test = np.load("X_test_Lab.npy")
-        
+        if config.ImagesFormat == 'RGB':
+            X_test = np.load("X_test.npy")
+            y_test = np.load("y_test.npy")
+        else:
+            X_test = np.load("X_test_Lab.npy")
+            y_test = np.load("X_test_Lab.npy")
+
     test_scores = colorization.evaluate(X_test, y_test, verbose=2)
     print("Test loss: ", test_scores[0])
     print("Test mae: ", test_scores[1])
     print("Test mse: ", test_scores[2])
-    
-    if config.ImagesFormat == 'RGB':
-        colorization.save_weights(os.path.join(config.saveModelDir, 'colorizationWithSkipRGBWeights.h5'), save_format='h5')
-    else: 
-        colorization.save_weights(os.path.join(config.saveModelDir, 'colorizationWithSkipLabWeights.h5'), save_format='h5')
+
+    if config.dataset == 'Div2K':
+        colorization.save_weights(os.path.join(config.saveModelDir, 'Div2KWithSkipRGBWeights.h5'), save_format='h5')
+    else:
+        if config.ImagesFormat == 'RGB':
+            colorization.save_weights(os.path.join(config.saveModelDir, 'colorizationWithSkipRGBWeights.h5'), save_format='h5')
+        else: 
+            colorization.save_weights(os.path.join(config.saveModelDir, 'colorizationWithSkipLabWeights.h5'), save_format='h5')

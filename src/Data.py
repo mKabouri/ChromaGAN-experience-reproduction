@@ -33,7 +33,7 @@ def denormalize(img):
         img[img < 0] = 0
         return img.astype(np.uint8)
 
-def backToRGBPipeline(gray, ab):
+def backToRGB(gray, ab):
     return lab2rgb(denormalize(np.concatenate((gray, ab), axis=2)))
 
 
@@ -62,8 +62,6 @@ class Data():
         trainImages = np.array([np.moveaxis(x.reshape(3, 32, 32), 0, -1) for t in self.dataset[:len(self.dataset) - 1] for x in t[b'data']])
         testImages = np.array([np.moveaxis(x.reshape(3, 32, 32), 0, -1) for x in self.dataset[len(self.dataset)-1][b'data']])
         
-        self.showImage(trainImages[0])
-
         if config.ImagesFormat == 'Lab':
             y_train = np.array([normalize_lab(rgb2lab(y))[:, :, 1:] for y in trainImages])
             y_test = np.array([normalize_lab(rgb2lab(y))[:, :, 1:] for y in testImages])
@@ -113,12 +111,12 @@ if __name__ == '__main__':
     print(data.X_train.shape, data.y_train.shape)
 
     data.save()
-    
+    """
     if config.ImagesFormat == 'Lab':
         L = data.X_train[0]
         print(L)
         ab = data.y_train[0]
-        data.showImage(backToRGBPipeline(L, ab))
+        data.showImage(backToRGB(L, ab))
     else:
         img = data.X_train[6]
         img_test = data.y_train[6]
@@ -127,7 +125,7 @@ if __name__ == '__main__':
         print(denormalize(img_test))
         data.showImage(denormalize(img_test))
         print(denormalize(img_test))
-
+    """
     print("Ok")  
     
 
