@@ -4,7 +4,7 @@ import config
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage import io
-from skimage.color import rgb2gray, rgb2lab, lab2rgb
+from skimage.color import rgb2gray
 from skimage.transform import resize
 
 data_dir = 'dataset/div2k/'
