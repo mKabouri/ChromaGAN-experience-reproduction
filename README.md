@@ -12,6 +12,10 @@ You have to edit `config.py` file and affect `RGB` or `Lab` to ImageFormat varia
 python3 src/Data.py
 ```
 
+In case you want the DIV2K data
+```
+python3 src/DataDiv2K.py
+```
 - Execute train.py:
 ```
 python3 src/train.py
