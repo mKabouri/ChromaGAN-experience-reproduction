@@ -1,4 +1,8 @@
 # Colorization with U-Net
+## ToDo:
+- Add a discriminator (compare the results)
+- More deep network
+
 ## Dataset
 
 The datasets are taken from [the CIFAR-10 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) and [DIV2K](http://data.vision.ee.ethz.ch/cvl/DIV2K/DIV2K_train_LR_x8.zip).
